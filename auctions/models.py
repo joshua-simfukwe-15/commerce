@@ -21,12 +21,20 @@ class AuctionListing(models.Model):
     title = models.CharField(max_length=64)
     description = models.TextField()
     starting_bid = models.DecimalField(max_digits=10, decimal_places=2)
-    current_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     image_url = models.URLField(max_length=200, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="listings")
     created_at = models.DateTimeField(auto_now_add=True)
     seller = models.ForeignKey(User, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
+
+    def current_price(self):
+        bids = self.bids.all()
+
+        if bids.exists():
+            return bids.order_by('-amount').first().amount
+        
+        else:
+            return self.starting_bid
 
     def __str__(self):
         return self.title

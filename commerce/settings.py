@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
-
+from pathlib import Path
 import os
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -122,3 +122,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#  This ensure Django knows where to find your static files
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATICFILES_DIRS = [
+    BASE_DIR / "auctions\static",
+]
+
+# In production (when using a web server), you should also define where collected static files will go
+STATIC_ROOT = BASE_DIR / "staticfiles"
