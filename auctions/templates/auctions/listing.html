@@ -1,0 +1,58 @@
+{% extends "auctions/layout.html" %}
+{% block body %}
+<h2>{{ listing.title }}</h2>
+<p>{{ listing.description }}</p>
+<p>Current Price: ${{ listing.current_price }}</p>
+
+{% if listing.image_url %}
+<img src="{{ listing.image_url }}" alt=" listing.title ">
+{% endif %}
+
+
+{% if user.is_authenticated %}
+{% if is_owner and listing.active %}
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" name="close_auction" class="btn btn-danger">Close Auction</button>
+</form>
+{% endif %}
+
+{% if not is_owner %}
+<form method="POST">
+    {% csrf_token %}
+    <div>
+        <label for="bid_amount">Place a Bid</label>
+        <input type="number" name="bid_amount" step="0.01" min="{{ listing.current_price }}" required>
+    </div>
+    <button type="submit" name="place_bid" class="btn btn-success">Bid</button>
+</form>
+{% if error_message %}
+<p class="text-danger">{{ error_message }}</p>
+{% endif %}
+{% endif %}
+
+{% if on_watchlist %}
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" name="remove_watchlist" class=" btn btn-primary">Remove from watchlist</button>
+</form>
+{% else %}
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" name="add_watchlist" class=" btn btn-primary">Add to watchlist</button>
+</form>
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+    <textarea name="comment" required></textarea>
+    <button type="submit" name="post_comment" class="btn btn-primary">Post Comment</button>
+</form>
+
+<ul>
+    {% for comment in comments %}
+    <li><strong>{{ comment.user }}:</strong> {{ comment.content }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

@@ -26,6 +26,7 @@ class AuctionListing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     seller = models.ForeignKey(User, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
+    watchers = models.ManyToManyField(User, blank=True, related_name="watchlist")
 
     def current_price(self):
         bids = self.bids.all()
@@ -48,7 +49,7 @@ class Bid(models.Model):
 
     def clean(self):
         # Ensure that the bid amount is higher than the current price
-        if self.listing.current_price is not None and self.amount <= self.listing.current_price:
+        if self.listing.current_price() is not None and self.amount <= self.listing.current_price():
             raise ValidationError(f"Your bid must be higher than the current price of {self.listing.current_price}.")
 
     def save(self, *args, **kwargs):

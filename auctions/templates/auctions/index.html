@@ -14,21 +14,25 @@
 <div class="listing-item">
     <!-- Image Display -->
     {% if listing.image_url %}
-    <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="listing-image">
-    {% else %}
-    <img src="{% static 'auctions/images/default.jpg' %}" alt="No Image Available" class="listing-image">
-    {% endif %}
+    <a href="{% url 'listing' listing_id=listing.id %}">
+        <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="listing-image">
 
-    <!-- Listing Details -->
-    <h3>{{ listing.title }}</h3>
-    <p>{{ listing.description }}</p>
+        {% else %}
+        <img src="{% static 'auctions/images/default.jpg' %}" alt="No Image Available" class="listing-image">
+        {% endif %}
 
-    <ul>
-        <!-- Ensure current_price reflects correct logic in your views -->
-        <li>Current Price: ${{ listing.current_price }}</li>
-        <li>Category: {{ listing.category }}</li>
-        <li>Seller: {{ listing.seller }}</li>
-    </ul>
+        <!-- Listing Details -->
+        <a href="{% url 'listing' listing_id=listing.id %}">
+            <h3>{{ listing.title }}</h3>
+        </a>
+        <p>{{ listing.description }}</p>
+
+        <ul>
+            <!-- Ensure current_price reflects correct logic in your views -->
+            <li>Current Price: ${{ listing.current_price }}</li>
+            <li>Category: {{ listing.category }}</li>
+            <li>Seller: {{ listing.seller }}</li>
+        </ul>
 </div>
 {% endfor %}
 {% else %}
