@@ -131,3 +131,6 @@ STATICFILES_DIRS = [
 
 # In production (when using a web server), you should also define where collected static files will go
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

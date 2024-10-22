@@ -4,10 +4,9 @@
 <p>{{ listing.description }}</p>
 <p>Current Price: ${{ listing.current_price }}</p>
 
-{% if listing.image_url %}
-<img src="{{ listing.image_url }}" alt=" listing.title ">
+{% if listing.image %}
+<img src="{{ listing.image.url }}" alt="{{ listing.title }}" class="listing-image">
 {% endif %}
-
 
 {% if user.is_authenticated %}
 {% if is_owner and listing.active %}
@@ -31,17 +30,14 @@
 {% endif %}
 {% endif %}
 
-{% if on_watchlist %}
-<form method="POST">
+<form action="{% url 'toggle_watchlist' listing.id %}" method="POST">
     {% csrf_token %}
-    <button type="submit" name="remove_watchlist" class=" btn btn-primary">Remove from watchlist</button>
+    {% if listing in user.watchlist.all %}
+    <button type="submit">Remove from Watchlist</button>
+    {% else %}
+    <button type="submit">Add to Watchlist</button>
+    {% endif %}
 </form>
-{% else %}
-<form method="POST">
-    {% csrf_token %}
-    <button type="submit" name="add_watchlist" class=" btn btn-primary">Add to watchlist</button>
-</form>
-{% endif %}
 
 <form method="POST">
     {% csrf_token %}

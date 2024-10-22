@@ -72,69 +72,76 @@ def register(request):
 @login_required
 def create_listing(request):
     if request.method == "POST":
-        form = AuctionListingForm(request.POST)
-        try:
-            if form.is_valid():
-                listing = form.save(commit=False)
-                listing.seller = request.user
-                listing.save()
-
-                messages.success(request, "Your listing was successfully created!")
-                return HttpResponseRedirect(reverse('index'))
-            else:
-                messages.error(request, "There was an error with your form. Please correct the errors and try again.")
-        except Exception as e:
-            messages.error(request, f"An error occurred: {str(e)}")             
+        form = AuctionListingForm(request.POST, request.FILES)  # Make sure to include request.FILES
+        if form.is_valid():
+            listing = form.save(commit=False)
+            listing.seller = request.user  # Set the seller to the current user
+            listing.save()
+            messages.success(request, "Listing created successfully!")
+            return redirect('index')
+        else:
+            messages.error(request, "Error creating listing. Please check the form.")
     else:
         form = AuctionListingForm()
-    
-    return render(request, "auctions/create_listing.html", {
-        "form": form
-    })
+
+    return render(request, "auctions/create_listing.html", {"form": form})
 
 def listing(request, listing_id):
     listing = get_object_or_404(AuctionListing, id=listing_id)
     user = request.user
     is_owner = listing.seller == user
-    on_watchlist = False
     error_message =""
 
-    if user.is_authenticated:
-        on_watchlist = listing.watchers.filter(id=user.id).exists()
+    if request.method == "POST":
+        if "place_bid" in request.POST:
+            amount = Decimal(request.POST["bid_amount"])
+            if amount <= listing.current_price():
+                error_message = "Bid must be higher than the current price."
+            else:
+                bid = Bid(user=user, listing=listing, amount=amount)
+                bid.save()
+                listing.current_price = amount
+                listing.save()  
+        if "close_auction" in request.POST:
+            listing.active = False
+            if listing.bid_set.exists():  # There are bids
+                highest_bid = listing.bid_set.order_by("-amount").first()
+                listing.winner = highest_bid.bidder
+            listing.save()
 
-        if request.method == "POST":
-            if "add_watchlist" in request.POST:
-                listing.watchers.add(user)
-            elif "remove_watchlist" in request.POST:
-                listing.watchers.remove(user)
-            elif "place_bid" in request.POST:
-                amount = Decimal(request.POST["bid_amount"])
-                if amount <= listing.current_price():
-                    error_message = "Bid must be higher than the current price."
-                else:
-                    bid = Bid(user=user, listing=listing, amount=amount)
-                    bid.save()
-                    listing.current_price = amount
-                    listing.save()  
-            elif "close_auction" in request.POST:
-                listing.active = False
-                if listing.bid_set.exists():  # There are bids
-                    highest_bid = listing.bid_set.order_by("-amount").first()
-                    listing.winner = highest_bid.bidder
-                listing.save()
-
-            elif "post_comment" in request.POST:
-                comment_content = request.POST["comment"]
-                comment = Comment(user=user, listing=listing, content=comment_content)
-                comment.save()
+        if "post_comment" in request.POST:
+            comment_content = request.POST["comment"]
+            comment = Comment(user=user, listing=listing, content=comment_content)
+            comment.save()
 
     context = {
         "listing": listing,
         "is_owner": is_owner,
-        "on_watchlist": on_watchlist,
         "comments": listing.comments.all(),
         "error_message": error_message,
 
     }
 
     return render(request, "auctions/listing.html", context)
+
+@login_required
+def watchlist(request):
+    user = request.user
+    watchlist = user.watchlist.all()
+
+    return render(request, "auctions/watchlist.html",{
+        "watchlist": watchlist
+    })
+
+@login_required
+def toggle_watchlist(request, listing_id):
+    listing = get_object_or_404(AuctionListing, id=listing_id)
+
+    if listing in request.user.watchlist.all():
+        request.user.watchlist.remove(listing)
+    else:
+        request.user.watchlist.add(listing)
+    return HttpResponseRedirect(reverse('listing', args=[listing.id]))
+
+
+

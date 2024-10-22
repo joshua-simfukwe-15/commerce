@@ -13,26 +13,27 @@
 {% for listing in active_listings %}
 <div class="listing-item">
     <!-- Image Display -->
-    {% if listing.image_url %}
+    {% if listing.image %}
     <a href="{% url 'listing' listing_id=listing.id %}">
-        <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="listing-image">
+        <img src="{{ listing.image.url }}" alt="{{ listing.title }}" class="listing-image">
+        <!-- Use listing.image.url -->
+    </a>
+    {% else %}
+    <img src="{% static 'auctions/images/default.jpg' %}" alt="No Image Available" class="listing-image">
+    {% endif %}
 
-        {% else %}
-        <img src="{% static 'auctions/images/default.jpg' %}" alt="No Image Available" class="listing-image">
-        {% endif %}
+    <!-- Listing Details -->
+    <a href="{% url 'listing' listing_id=listing.id %}">
+        <h3>{{ listing.title }}</h3>
+    </a>
+    <p>{{ listing.description }}</p>
 
-        <!-- Listing Details -->
-        <a href="{% url 'listing' listing_id=listing.id %}">
-            <h3>{{ listing.title }}</h3>
-        </a>
-        <p>{{ listing.description }}</p>
-
-        <ul>
-            <!-- Ensure current_price reflects correct logic in your views -->
-            <li>Current Price: ${{ listing.current_price }}</li>
-            <li>Category: {{ listing.category }}</li>
-            <li>Seller: {{ listing.seller }}</li>
-        </ul>
+    <ul>
+        <!-- Ensures current_price reflects correct logic in views -->
+        <li>Current Price: ${{ listing.current_price }}</li>
+        <li>Category: {{ listing.category }}</li>
+        <li>Seller: {{ listing.seller }}</li>
+    </ul>
 </div>
 {% endfor %}
 {% else %}
